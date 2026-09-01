@@ -41,6 +41,7 @@ dependencies:
   http: ^1.6.0
   # Local cache
   shared_preferences: ^2.5.5
+  meta: ^1.19.0
 
 dev_dependencies:
   flutter_test:

@@ -6,7 +6,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'get_concrete_number_trivia_test_test.mocks.dart';
+import 'get_concrete_number_trivia_test.mocks.dart';
 
 @GenerateMocks([NumberTriviaRepository])
 void main() {
@@ -37,7 +37,7 @@ void main() {
 
     // Act
     // excute 메서드를 호출하여 실제 테스트를 수행합니다. 여기서는 testNumber를 매개변수로 전달합니다.
-    final result = await usecase.call(number: testNumber);
+    final result = await usecase.call(Params(number: testNumber));
     // Assert
     // expect 메서드는 테스트 결과를 검증하는 역할을 합니다. 여기서는 result가 Right(testNumberTrivia)와 동일한지 확인합니다.
     expect(result, Right(testNumberTrivia));

@@ -1,5 +1,6 @@
 import 'package:clean_architecture_app/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
+import 'package:equatable/equatable.dart';
 
 // UseCase는 도메인 계층에서 비즈니스 로직을 수행하는 유스케이스를 나타내는 추상 클래스입니다.
 // 이 클래스는 제네릭 타입(Type, Params)을 사용하여
@@ -15,4 +16,10 @@ import 'package:dartz/dartz.dart';
 // 왼쪽은 실패(Failure ), 오른쪽은 성공(Type)을 의미합니다.
 abstract class UseCase<Type, Params> {
   Future<Either<Failure, Type>> call(Params params);
+}
+
+// NoParams는 매개변수가 필요 없는 유스케이스에서 사용되는 클래스입니다.
+class NoParams extends Equatable {
+  @override
+  List<Object?> get props => [];
 }

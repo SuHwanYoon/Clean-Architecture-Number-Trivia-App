@@ -12,3 +12,9 @@ abstract class Failure extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
+// ServerFailure는 서버 관련 실패를 나타내는 클래스입니다.
+class ServerFailure extends Failure {}
+
+// CacheFailure는 캐시 관련 실패를 나타내는 클래스입니다.
+class CacheFailure extends Failure {}

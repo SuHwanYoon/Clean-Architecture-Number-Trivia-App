@@ -1,3 +1,4 @@
+import 'package:clean_architecture_app/core/error/exceptions.dart';
 import 'package:clean_architecture_app/core/error/failures.dart';
 import 'package:clean_architecture_app/core/platform/network_info.dart';
 import 'package:clean_architecture_app/features/number_trivia/data/datasources/number_trivia_local_data_source.dart';
@@ -27,14 +28,25 @@ class NumberTriviaRepositoryImpl implements NumberTriviaRepository {
     int number,
   ) async {
     if (await networkInfo.isConnected) {
-      final remoteTrivia = await remoteDataSource.getConcreteNumberTrivia(
-        number,
-      );
-      await localDataSource.cacheNumberTrivia(remoteTrivia);
-      return Right(remoteTrivia);
-    }
+      try {
+        final remoteTrivia = await remoteDataSource.getConcreteNumberTrivia(
+          number,
+        );
 
-    throw UnimplementedError();
+        await localDataSource.cacheNumberTrivia(remoteTrivia);
+
+        return Right(remoteTrivia);
+      } on ServerException {
+        return Left(ServerFailure());
+      }
+    } else {
+      try {
+        final localTrivia = await localDataSource.getLastNumberTrivia();
+        return Right(localTrivia as NumberTrivia);
+      } on CacheException {
+        return Left(CacheFailure());
+      }
+    }
   }
 
   @override

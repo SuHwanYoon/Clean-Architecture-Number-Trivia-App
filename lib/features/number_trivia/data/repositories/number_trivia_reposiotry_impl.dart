@@ -6,7 +6,11 @@ import 'package:clean_architecture_app/features/number_trivia/domain/entities/nu
 import 'package:clean_architecture_app/features/number_trivia/domain/repositories/number_trivia_repository.dart';
 import 'package:dartz/dartz.dart';
 
+// NumberTriviaRepositoryImpl는 NumberTriviaRepository를 구현하며,
+// 원격 및 로컬 데이터 소스를 사용하여 숫자 퀴즈 데이터를 제공하는 클래스입니다.
 class NumberTriviaRepositoryImpl implements NumberTriviaRepository {
+  // NumberTriviaRepositoryImpl의 의존성으로 사용되는
+  // 원격 및 로컬 데이터 소스와 네트워크 정보를 정의합니다.
   final NumberTriviaRemoteDataSource remoteDataSource;
   final NumberTriviaLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
@@ -17,9 +21,19 @@ class NumberTriviaRepositoryImpl implements NumberTriviaRepository {
     required this.networkInfo,
   });
 
+  // NumberTriviaRepositoryImpl의 메서드 구현 부분입니다.
   @override
-  Future<Either<Failure, NumberTrivia>> getConcreteNumberTrivia(int number) {
-    // TODO: implement getConcreteNumberTrivia
+  Future<Either<Failure, NumberTrivia>> getConcreteNumberTrivia(
+    int number,
+  ) async {
+    if (await networkInfo.isConnected) {
+      final remoteTrivia = await remoteDataSource.getConcreteNumberTrivia(
+        number,
+      );
+      await localDataSource.cacheNumberTrivia(remoteTrivia);
+      return Right(remoteTrivia);
+    }
+
     throw UnimplementedError();
   }
 

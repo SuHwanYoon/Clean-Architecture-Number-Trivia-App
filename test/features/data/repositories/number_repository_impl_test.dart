@@ -163,4 +163,97 @@ void main() {
       );
     });
   });
+
+  // 테스트: getRandomNumberTrivia 메서드에 대한 테스트 케이스를 여기에 추가
+  group('getRandomNumberTrivia', () {
+    // 테스트: 온라인 상태의 케이스
+    runTestsOnline(() {
+      // 테스트: 원격 데이터 소스 호출이 성공하면 원격 데이터를 반환해야 함
+      test('should return remote data when the call to remote data source is successful', () async {
+        // arrange
+        when(() => mockRemoteDataSource.getRandomNumberTrivia())
+            .thenAnswer((_) async => tNumberTriviaModel);
+        // act
+        final result = await repository.getRandomNumberTrivia();
+        // assert
+        expect(result, Right(tNumberTriviaModel));
+        verify(() => mockRemoteDataSource.getRandomNumberTrivia()).called(1);
+      });
+      // 테스트: 원격 데이터 소스 호출이 실해하면 로컬 캐쉬 데이터를 반환해야 함
+      test('should cache the data locally when the call to remote data source is successful', () async {
+        // arrange
+        when(() => mockRemoteDataSource.getRandomNumberTrivia())
+            .thenAnswer((_) async => tNumberTriviaModel);
+        // act
+        await repository.getRandomNumberTrivia();
+        // assert
+        verify(() => mockLocalDataSource.cacheNumberTrivia(tNumberTriviaModel))
+            .called(1);
+      });
+      // 테스트: remote data source를 호출성공했을때 로컬 데이터를 캐싱해야 함
+      test('should call local data source to cache the data when remote data source call is successful', () async {
+        // arrange
+        when(() => mockRemoteDataSource.getRandomNumberTrivia())
+            .thenAnswer((_) async => tNumberTriviaModel);
+        // act
+        await repository.getRandomNumberTrivia();
+        // assert
+        verify(() => mockLocalDataSource.cacheNumberTrivia(tNumberTriviaModel))
+            .called(1);
+      });
+
+      // 테스트: remote data source 호출이 실패하면 예외를 던져야 함
+      test('should throw an exception when the call to remote data source is unsuccessful', () async {
+        // arrange
+        when(() => mockRemoteDataSource.getRandomNumberTrivia())
+            .thenThrow(Exception());
+        // act
+        final call = repository.getRandomNumberTrivia;
+        // assert
+        verifyNoMoreInteractions(mockRemoteDataSource);
+        await expectLater(call(), throwsA(isA<Exception>()));
+      });
+
+      test('should return server failure when the call to remote data source is unsuccessful', () async {
+        // arrange
+        when(() => mockRemoteDataSource.getRandomNumberTrivia())
+            .thenThrow(ServerException());
+
+        // act
+        final result = await repository.getRandomNumberTrivia();
+
+        // assert
+        expect(result, Left(ServerFailure()));
+      });
+    });
+
+    runTestsOffline(() {
+      // 오프라인 상태에서의 테스트 케이스를 여기에 추가
+
+      test('should return last locally cached data when the cached data is present', () async {
+        // arrange
+        when(() => mockLocalDataSource.getLastNumberTrivia())
+            .thenAnswer((_) async => tNumberTriviaModel);
+        // act
+        final result = await repository.getRandomNumberTrivia();
+        // assert
+        verify(() => mockLocalDataSource.getLastNumberTrivia()).called(1);
+        expect(result, Right(tNumberTriviaModel));
+      });
+
+      test(
+        'should return cache failure when there is no cached data present',
+        () async {
+          // arrange
+          when(() => mockLocalDataSource.getLastNumberTrivia())
+              .thenThrow(CacheException());
+          // act
+          final result = await repository.getRandomNumberTrivia();
+          // assert
+          verify(() => mockLocalDataSource.getLastNumberTrivia()).called(1);
+          expect(result, Left(CacheFailure()));
+        },
+      );
+    });
+  });
 }

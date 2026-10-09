@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+/// S는 성공 값의 타입, E는 실패 값의 타입입니다.
 sealed class Result<S, E> extends Equatable {
   const Result();
 

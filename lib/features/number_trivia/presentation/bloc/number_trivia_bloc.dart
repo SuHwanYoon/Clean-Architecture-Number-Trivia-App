@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:clean_architecture_app/core/usecases/usecase.dart';
 import 'package:clean_architecture_app/features/number_trivia/domain/entities/number_trivia.dart';
 import 'package:clean_architecture_app/features/number_trivia/domain/usecases/get_concrete_number_trivia.dart';
 import 'package:clean_architecture_app/features/number_trivia/domain/usecases/get_random_number_trivia.dart';
@@ -39,18 +40,46 @@ class NumberTriviaBloc extends Bloc<NumberTriviaEvent, NumberTriviaState> {
   ) async {
     emit(Loading());
 
-    final conversionResult =
-        inputConverter.stringToUnsignedInteger(event.numberString);
+    final conversionResult = inputConverter.stringToUnsignedInteger(
+      event.numberString,
+    );
 
     if (conversionResult is FailureResult<int, Failure>) {
       emit(Error(INVALID_INPUT_FAILURE_MESSAGE));
       return;
     }
 
-    // Success인 경우의 UseCase 호출과 Loaded/Error 처리는 별도로 이어서 구현
+    final number = (conversionResult as Success<int, Failure>).value;
+    final result = await getConcreteNumberTrivia(Params(number: number));
+    _emitTriviaResult(result, emit);
   }
+
   FutureOr<void> _onGetTriviaForRandomNumber(
     GetTriviaForRandomNumber event,
     Emitter<NumberTriviaState> emit,
-  ) {}
+  ) async {
+    emit(Loading());
+    final result = await getRandomNumberTrivia(NoParams());
+    _emitTriviaResult(result, emit);
+  }
+
+  void _emitTriviaResult(
+    Result<NumberTrivia, Failure> result,
+    Emitter<NumberTriviaState> emit,
+  ) {
+    switch (result) {
+      case Success<NumberTrivia, Failure>(:final value):
+        emit(Loaded(value));
+      case FailureResult<NumberTrivia, Failure>(:final failure):
+        emit(Error(_mapFailureToMessage(failure)));
+    }
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    return switch (failure) {
+      ServerFailure() => SERVER_FAILURE_MESSAGE,
+      CacheFailure() => CACHE_FAILURE_MESSAGE,
+      _ => 'Unexpected Error',
+    };
+  }
 }

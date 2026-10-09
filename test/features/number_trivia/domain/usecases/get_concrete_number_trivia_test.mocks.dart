@@ -4,15 +4,16 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
-import 'dart:async' as _i4;
+import 'dart:async' as _i3;
 
-import 'package:clean_architecture_app/core/error/failures.dart' as _i5;
+import 'package:clean_architecture_app/core/error/failures.dart' as _i6;
+import 'package:clean_architecture_app/core/util/result.dart' as _i4;
 import 'package:clean_architecture_app/features/number_trivia/domain/entities/number_trivia.dart'
-    as _i6;
+    as _i5;
 import 'package:clean_architecture_app/features/number_trivia/domain/repositories/number_trivia_repository.dart'
-    as _i3;
-import 'package:dartz/dartz.dart' as _i2;
+    as _i2;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -30,42 +31,37 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
-  _FakeEither_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
 /// A class which mocks [NumberTriviaRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockNumberTriviaRepository extends _i1.Mock
-    implements _i3.NumberTriviaRepository {
+    implements _i2.NumberTriviaRepository {
   MockNumberTriviaRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Either<_i5.Failure, _i6.NumberTrivia>> getConcreteNumberTrivia(
+  _i3.Future<_i4.Result<_i5.NumberTrivia, _i6.Failure>> getConcreteNumberTrivia(
     int? number,
   ) => (super.noSuchMethod(
     Invocation.method(#getConcreteNumberTrivia, [number]),
-    returnValue: _i4.Future<_i2.Either<_i5.Failure, _i6.NumberTrivia>>.value(
-      _FakeEither_0<_i5.Failure, _i6.NumberTrivia>(
+    returnValue: _i3.Future<_i4.Result<_i5.NumberTrivia, _i6.Failure>>.value(
+      _i7.dummyValue<_i4.Result<_i5.NumberTrivia, _i6.Failure>>(
         this,
         Invocation.method(#getConcreteNumberTrivia, [number]),
       ),
     ),
-  ) as _i4.Future<_i2.Either<_i5.Failure, _i6.NumberTrivia>>);
+  ) as _i3.Future<_i4.Result<_i5.NumberTrivia, _i6.Failure>>);
 
   @override
-  _i4.Future<_i2.Either<_i5.Failure, _i6.NumberTrivia>>
+  _i3.Future<_i4.Result<_i5.NumberTrivia, _i6.Failure>>
   getRandomNumberTrivia() => (super.noSuchMethod(
     Invocation.method(#getRandomNumberTrivia, []),
-    returnValue: _i4.Future<_i2.Either<_i5.Failure, _i6.NumberTrivia>>.value(
-      _FakeEither_0<_i5.Failure, _i6.NumberTrivia>(
+    returnValue: _i3.Future<_i4.Result<_i5.NumberTrivia, _i6.Failure>>.value(
+      _i7.dummyValue<_i4.Result<_i5.NumberTrivia, _i6.Failure>>(
         this,
         Invocation.method(#getRandomNumberTrivia, []),
       ),
     ),
-  ) as _i4.Future<_i2.Either<_i5.Failure, _i6.NumberTrivia>>);
+  ) as _i3.Future<_i4.Result<_i5.NumberTrivia, _i6.Failure>>);
 }

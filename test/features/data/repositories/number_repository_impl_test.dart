@@ -1,9 +1,10 @@
 import 'package:clean_architecture_app/core/network/network_info.dart';
+import 'package:clean_architecture_app/core/util/result.dart';
 import 'package:clean_architecture_app/features/number_trivia/data/datasources/number_trivia_local_data_source.dart';
 import 'package:clean_architecture_app/features/number_trivia/data/datasources/number_trivia_remote_data_source.dart';
 import 'package:clean_architecture_app/features/number_trivia/data/models/number_trivia_model.dart';
 import 'package:clean_architecture_app/features/number_trivia/data/repositories/number_trivia_reposiotry_impl.dart';
-import 'package:dartz/dartz.dart';
+import 'package:clean_architecture_app/features/number_trivia/domain/entities/number_trivia.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:clean_architecture_app/core/error/exceptions.dart';
@@ -82,7 +83,7 @@ void main() {
         // act
         final result = await repository.getConcreteNumberTrivia(tNumber);
         // assert
-        expect(result, Right(tNumberTriviaModel));
+        expect(result, Success<NumberTrivia, Failure>(tNumberTriviaModel));
         verify(() => mockRemoteDataSource.getConcreteNumberTrivia(tNumber))
             .called(1);
       });
@@ -130,7 +131,7 @@ void main() {
         final result = await repository.getConcreteNumberTrivia(tNumber);
 
         // assert
-        expect(result, Left(ServerFailure()));
+        expect(result, FailureResult<NumberTrivia, Failure>(ServerFailure()));
       });
     });
 
@@ -145,7 +146,7 @@ void main() {
         final result = await repository.getConcreteNumberTrivia(tNumber);
         // assert
         verify(() => mockLocalDataSource.getLastNumberTrivia()).called(1);
-        expect(result, Right(tNumberTriviaModel));
+        expect(result, Success<NumberTrivia, Failure>(tNumberTriviaModel));
       });
 
       test(
@@ -158,7 +159,7 @@ void main() {
           final result = await repository.getConcreteNumberTrivia(tNumber);
           // assert
           verify(() => mockLocalDataSource.getLastNumberTrivia()).called(1);
-          expect(result, Left(CacheFailure()));
+          expect(result, FailureResult<NumberTrivia, Failure>(CacheFailure()));
         },
       );
     });
@@ -176,7 +177,7 @@ void main() {
         // act
         final result = await repository.getRandomNumberTrivia();
         // assert
-        expect(result, Right(tNumberTriviaModel));
+        expect(result, Success<NumberTrivia, Failure>(tNumberTriviaModel));
         verify(() => mockRemoteDataSource.getRandomNumberTrivia()).called(1);
       });
       // 테스트: 원격 데이터 소스 호출이 실해하면 로컬 캐쉬 데이터를 반환해야 함
@@ -223,7 +224,7 @@ void main() {
         final result = await repository.getRandomNumberTrivia();
 
         // assert
-        expect(result, Left(ServerFailure()));
+        expect(result, FailureResult<NumberTrivia, Failure>(ServerFailure()));
       });
     });
 
@@ -238,7 +239,7 @@ void main() {
         final result = await repository.getRandomNumberTrivia();
         // assert
         verify(() => mockLocalDataSource.getLastNumberTrivia()).called(1);
-        expect(result, Right(tNumberTriviaModel));
+        expect(result, Success<NumberTrivia, Failure>(tNumberTriviaModel));
       });
 
       test(
@@ -251,7 +252,7 @@ void main() {
           final result = await repository.getRandomNumberTrivia();
           // assert
           verify(() => mockLocalDataSource.getLastNumberTrivia()).called(1);
-          expect(result, Left(CacheFailure()));
+          expect(result, FailureResult<NumberTrivia, Failure>(CacheFailure()));
         },
       );
     });

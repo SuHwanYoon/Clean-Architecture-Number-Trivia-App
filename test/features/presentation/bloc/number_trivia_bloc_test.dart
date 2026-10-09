@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:clean_architecture_app/core/error/failures.dart';
+import 'package:clean_architecture_app/core/usecases/usecase.dart';
 import 'package:clean_architecture_app/core/util/result.dart';
 import 'package:clean_architecture_app/features/number_trivia/domain/usecases/get_concrete_number_trivia.dart';
 import 'package:clean_architecture_app/features/number_trivia/domain/usecases/get_random_number_trivia.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clean_architecture_app/features/number_trivia/domain/entities/number_trivia.dart';
 import 'package:clean_architecture_app/features/number_trivia/presentation/bloc/number_trivia_bloc.dart';
@@ -24,6 +22,11 @@ void main() {
   late MockGetRandomNumberTrivia mockGetRandomNumberTrivia;
   late MockInputConverter mockInputConverter;
 
+  setUpAll(() {
+    registerFallbackValue(const Params(number: 0));
+    registerFallbackValue(NoParams());
+  });
+
   setUp(() {
     mockGetConcreteNumberTrivia = MockGetConcreteNumberTrivia();
     mockGetRandomNumberTrivia = MockGetRandomNumberTrivia();
@@ -33,6 +36,10 @@ void main() {
       getRandomNumberTrivia: mockGetRandomNumberTrivia,
       inputConverter: mockInputConverter,
     );
+  });
+
+  tearDown(() async {
+    await numberTriviaBloc.close();
   });
 
   // 이 테스트는 NumberTriviaBloc의 초기 상태가 Empty인지 확인합니다.
@@ -50,6 +57,13 @@ void main() {
       // arrange
       when(() => mockInputConverter.stringToUnsignedInteger(any()))
           .thenReturn(Success(testNumberParsed));
+      when(() => mockGetConcreteNumberTrivia(any()))
+          .thenAnswer((_) async => Success(testNumberTrivia));
+
+      final stateExpectation = expectLater(
+        numberTriviaBloc.stream,
+        emitsInOrder([Loading(), Loaded(testNumberTrivia)]),
+      );
 
       // act
       numberTriviaBloc.add(GetTriviaForConcreteNumber(testNumberString));
@@ -61,6 +75,7 @@ void main() {
       verify(
         () => mockInputConverter.stringToUnsignedInteger(testNumberString),
       );
+      await stateExpectation;
     });
 
     // invalid input test can be added here.
@@ -86,6 +101,100 @@ void main() {
         () => mockInputConverter.stringToUnsignedInteger(any()),
       );
       await stateExpectation;
+      verifyZeroInteractions(mockGetConcreteNumberTrivia);
     });
+
+    test('should get data from the concrete use case', () async {
+      // arrange
+      when(() => mockInputConverter.stringToUnsignedInteger(any()))
+          .thenReturn(Success(testNumberParsed));
+      when(() => mockGetConcreteNumberTrivia(any()))
+          .thenAnswer((_) async => Success(testNumberTrivia));
+
+      final stateExpectation = expectLater(
+        numberTriviaBloc.stream,
+        emitsInOrder([Loading(), Loaded(testNumberTrivia)]),
+      );
+
+      // act
+      numberTriviaBloc.add(GetTriviaForConcreteNumber(testNumberString));
+
+      // assert
+      await untilCalled(
+        () => mockInputConverter.stringToUnsignedInteger(any()),
+      );
+      verify(
+        () => mockInputConverter.stringToUnsignedInteger(testNumberString),
+      );
+      await stateExpectation;
+      verify(
+        () => mockGetConcreteNumberTrivia(Params(number: testNumberParsed)),
+      ).called(1);
+    });
+
+    for (final failure in [ServerFailure(), CacheFailure()]) {
+      test('should emit Error for ${failure.runtimeType}', () async {
+        when(() => mockInputConverter.stringToUnsignedInteger(any()))
+            .thenReturn(Success(testNumberParsed));
+        when(() => mockGetConcreteNumberTrivia(any())).thenAnswer(
+          (_) async => FailureResult<NumberTrivia, Failure>(failure),
+        );
+
+        final stateExpectation = expectLater(
+          numberTriviaBloc.stream,
+          emitsInOrder([
+            Loading(),
+            Error(
+              failure is ServerFailure
+                  ? SERVER_FAILURE_MESSAGE
+                  : CACHE_FAILURE_MESSAGE,
+            ),
+          ]),
+        );
+
+        numberTriviaBloc.add(GetTriviaForConcreteNumber(testNumberString));
+        await stateExpectation;
+      });
+    }
+  });
+
+  group('GetTriviaForRandomNumber', () {
+    final testNumberTrivia = NumberTrivia(number: 1, text: 'Test trivia');
+
+    test('should emit Loaded when the random use case succeeds', () async {
+      when(() => mockGetRandomNumberTrivia(any()))
+          .thenAnswer((_) async => Success(testNumberTrivia));
+      final stateExpectation = expectLater(
+        numberTriviaBloc.stream,
+        emitsInOrder([Loading(), Loaded(testNumberTrivia)]),
+      );
+
+      numberTriviaBloc.add(GetTriviaForRandomNumber());
+      await stateExpectation;
+      verify(() => mockGetRandomNumberTrivia(NoParams())).called(1);
+      verifyZeroInteractions(mockInputConverter);
+    });
+
+    for (final failure in [ServerFailure(), CacheFailure()]) {
+      test('should emit Error for ${failure.runtimeType}', () async {
+        when(() => mockGetRandomNumberTrivia(any())).thenAnswer(
+          (_) async => FailureResult<NumberTrivia, Failure>(failure),
+        );
+        final stateExpectation = expectLater(
+          numberTriviaBloc.stream,
+          emitsInOrder([
+            Loading(),
+            Error(
+              failure is ServerFailure
+                  ? SERVER_FAILURE_MESSAGE
+                  : CACHE_FAILURE_MESSAGE,
+            ),
+          ]),
+        );
+
+        numberTriviaBloc.add(GetTriviaForRandomNumber());
+        await stateExpectation;
+      });
+    }
   });
 }

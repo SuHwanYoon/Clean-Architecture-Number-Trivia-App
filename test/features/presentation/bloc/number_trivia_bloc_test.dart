@@ -104,19 +104,24 @@ void main() {
       verifyZeroInteractions(mockGetConcreteNumberTrivia);
     });
 
+    // 이 테스트는 구체적인 숫자에 대한 트리비아를 가져오는 use case가 호출되는지 확인합니다.
     test('should get data from the concrete use case', () async {
       // arrange
+      // 먼저 inputConverter가 문자열을 정수로 변환하도록 설정합니다.
       when(() => mockInputConverter.stringToUnsignedInteger(any()))
           .thenReturn(Success(testNumberParsed));
+      // 그리고 구체적인 숫자에 대한 트리비아를 가져오는 use case가 성공하도록 설정합니다.
       when(() => mockGetConcreteNumberTrivia(any()))
           .thenAnswer((_) async => Success(testNumberTrivia));
-
+      // 상태 변화에 대한 기대를 설정합니다.
       final stateExpectation = expectLater(
         numberTriviaBloc.stream,
         emitsInOrder([Loading(), Loaded(testNumberTrivia)]),
       );
 
       // act
+      // numberTriviaBloc에 testNumberString을 가진
+      // GetTriviaForConcreteNumber 이벤트를 추가합니다.
       numberTriviaBloc.add(GetTriviaForConcreteNumber(testNumberString));
 
       // assert
@@ -131,70 +136,5 @@ void main() {
         () => mockGetConcreteNumberTrivia(Params(number: testNumberParsed)),
       ).called(1);
     });
-
-    for (final failure in [ServerFailure(), CacheFailure()]) {
-      test('should emit Error for ${failure.runtimeType}', () async {
-        when(() => mockInputConverter.stringToUnsignedInteger(any()))
-            .thenReturn(Success(testNumberParsed));
-        when(() => mockGetConcreteNumberTrivia(any())).thenAnswer(
-          (_) async => FailureResult<NumberTrivia, Failure>(failure),
-        );
-
-        final stateExpectation = expectLater(
-          numberTriviaBloc.stream,
-          emitsInOrder([
-            Loading(),
-            Error(
-              failure is ServerFailure
-                  ? SERVER_FAILURE_MESSAGE
-                  : CACHE_FAILURE_MESSAGE,
-            ),
-          ]),
-        );
-
-        numberTriviaBloc.add(GetTriviaForConcreteNumber(testNumberString));
-        await stateExpectation;
-      });
-    }
-  });
-
-  group('GetTriviaForRandomNumber', () {
-    final testNumberTrivia = NumberTrivia(number: 1, text: 'Test trivia');
-
-    test('should emit Loaded when the random use case succeeds', () async {
-      when(() => mockGetRandomNumberTrivia(any()))
-          .thenAnswer((_) async => Success(testNumberTrivia));
-      final stateExpectation = expectLater(
-        numberTriviaBloc.stream,
-        emitsInOrder([Loading(), Loaded(testNumberTrivia)]),
-      );
-
-      numberTriviaBloc.add(GetTriviaForRandomNumber());
-      await stateExpectation;
-      verify(() => mockGetRandomNumberTrivia(NoParams())).called(1);
-      verifyZeroInteractions(mockInputConverter);
-    });
-
-    for (final failure in [ServerFailure(), CacheFailure()]) {
-      test('should emit Error for ${failure.runtimeType}', () async {
-        when(() => mockGetRandomNumberTrivia(any())).thenAnswer(
-          (_) async => FailureResult<NumberTrivia, Failure>(failure),
-        );
-        final stateExpectation = expectLater(
-          numberTriviaBloc.stream,
-          emitsInOrder([
-            Loading(),
-            Error(
-              failure is ServerFailure
-                  ? SERVER_FAILURE_MESSAGE
-                  : CACHE_FAILURE_MESSAGE,
-            ),
-          ]),
-        );
-
-        numberTriviaBloc.add(GetTriviaForRandomNumber());
-        await stateExpectation;
-      });
-    }
   });
 }

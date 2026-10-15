@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Android Emulator (Pixel 7)",
+            "type": "shell",
+            "command": "flutter emulators --launch Pixel_7_API_34",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Stop Android Emulator",
+            "type": "shell",
+            "command": "adb -e emu kill",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        }
+    ]
+}

@@ -6,6 +6,12 @@
     "configurations": [
 
         {
+            "name": "clean_architecture_app (Pixel 7 Emulator)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "Pixel_7_API_34"
+        },
+        {
             "name": "clean_architecture_app",
             "request": "launch",
             "type": "dart"
